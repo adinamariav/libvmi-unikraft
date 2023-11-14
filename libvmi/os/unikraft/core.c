@@ -1,0 +1,71 @@
+/* The LibVMI Library is an introspection library that simplifies access to
+ * memory in a target virtual machine or in a file containing a dump of
+ * a system's physical memory.  LibVMI is based on the XenAccess Library.
+ *
+ * Copyright 2011 Sandia Corporation. Under the terms of Contract
+ * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
+ * retains certain rights in this software.
+ *
+ * Author: Bryan D. Payne (bdpayne@acm.org)
+ *
+ * This file is part of LibVMI.
+ *
+ * LibVMI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * LibVMI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with LibVMI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "private.h"
+#include "config/config_parser.h"
+#include "driver/driver_wrapper.h"
+#include "os/unikraft/unikraft.h"
+
+
+void unikraft_read_config_ghashtable_entries(char *key, gpointer value,
+                                        vmi_instance_t vmi);
+
+status_t unikraft_init(vmi_instance_t vmi, GHashTable *config)
+{
+    dbprint(VMI_DEBUG_MISC, "salut adina\n");
+
+    status_t status = VMI_FAILURE;
+    os_interface_t os_interface = NULL;
+
+    if (vmi->os_data != NULL) {
+        errprint("os data already initialized, reinitializing\n");
+        free(vmi->os_data);
+    }
+
+    vmi->os_data = g_try_malloc0(sizeof(struct unikraft_instance));
+    if (!vmi->os_data) {
+        return VMI_FAILURE;
+    }
+
+    g_hash_table_foreach(config, (GHFunc) unikraft_read_config_ghashtable_entries,
+                         vmi);
+
+#if defined(I386) || defined(X86_64)
+    driver_get_vcpureg(vmi, &vmi->kpgd, CR3, 0);
+#endif
+
+    dbprint(VMI_DEBUG_MISC, "**set vmi->kpgd (0x%.16"PRIx64").\n", vmi->kpgd);
+    return VMI_SUCCESS;
+
+}
+
+void unikraft_read_config_ghashtable_entries(char *key, gpointer value,
+                                        vmi_instance_t vmi)
+{
+    unikraft_instance_t unikraft_instance = vmi->os_data;
+
+    return;
+}

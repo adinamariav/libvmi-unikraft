@@ -44,6 +44,7 @@
 #include "os/linux/linux.h"
 #include "os/freebsd/freebsd.h"
 #include "os/osx/osx.h"
+#include "os/unikraft/unikraft.h"
 
 #ifndef ENABLE_CONFIGFILE
 static inline status_t
@@ -274,6 +275,9 @@ set_os_type_from_config(
     } else if (!strcmp(ostype, "OSX")) {
         vmi->os_type = VMI_OS_OSX;
         ret = VMI_SUCCESS;
+    } else if (!strcmp(ostype, "Unikraft")) {
+        vmi->os_type = VMI_OS_UNIKRAFT;
+        ret = VMI_SUCCESS;
     } else {
         errprint("VMI_ERROR: Unknown OS type: %s!\n", ostype);
         ret = VMI_FAILURE;
@@ -286,6 +290,8 @@ set_os_type_from_config(
         dbprint(VMI_DEBUG_CORE, "**set os_type to Windows.\n");
     }     else if (vmi->os_type == VMI_OS_FREEBSD) {
         dbprint(VMI_DEBUG_CORE, "**set os_type to FreeBSD.\n");
+    } else if (vmi->os_type == VMI_OS_UNIKRAFT) {
+        dbprint(VMI_DEBUG_CORE, "**set os_type to Unikraft.\n");
     } else {
         dbprint(VMI_DEBUG_CORE, "**set os_type to unknown.\n");
     }
@@ -921,6 +927,17 @@ os_t vmi_init_os(
 #ifdef ENABLE_OSX
         case VMI_OS_OSX:
             if (VMI_FAILURE == osx_init(vmi, _config)) {
+                vmi->os_type = VMI_OS_UNKNOWN;
+                if ( error )
+                    *error = VMI_INIT_ERROR_OS;
+
+                goto error_exit;
+            }
+            break;
+#endif
+#ifdef ENABLE_UNIKRAFT
+        case VMI_OS_UNIKRAFT:
+            if (VMI_FAILURE == unikraft_init(vmi, _config)) {
                 vmi->os_type = VMI_OS_UNKNOWN;
                 if ( error )
                     *error = VMI_INIT_ERROR_OS;
