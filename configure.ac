@@ -112,6 +112,13 @@ AC_ARG_ENABLE([freebsd],
       [enable_freebsd=yes])
 AM_CONDITIONAL([FREEBSD], [test x"$enable_freebsd" = xyes])
 
+AC_ARG_ENABLE([unikraft],
+      [AS_HELP_STRING([--disable-unikraft],
+         [Disable support for introspecting Unikraft @<:@no@:>@])],
+      [enable_unikraft=$enableval],
+      [enable_unikraft=yes])
+AM_CONDITIONAL([UNIKRAFT], [test x"$enable_unikraft" = xyes])
+
 
 AC_ARG_ENABLE([vmifs],
       [AS_HELP_STRING([--disable-vmifs],
@@ -368,6 +375,12 @@ AC_CHECK_LIB(json-c, json_object_get_uint64, [AC_DEFINE([JSONC_UINT64_SUPPORT], 
     AC_MSG_WARN([Not compiling for OSX since Json profiles are not enabled])
     enable_osx='no'
 [fi]
+[then]
+    AC_DEFINE([ENABLE_UNIKRAFT], [1], [Define to 1 to enable Unikraft support.])
+[else]
+    AC_MSG_WARN([Not compiling for Unikraft since Json profiles are not enabled])
+    enable_unikraft='no'
+[fi]
 
 have_vmifs='yes'
 [if test "$enable_vmifs" = "yes"]
@@ -491,6 +504,7 @@ Windows                 | --enable-windows=$enable_windows
 Linux                   | --enable-linux=$enable_linux
 FreeBSD                 | --enable-freebsd=$enable_freebsd
 OSX                     | --enable-osx=$enable_osx
+Unikraft                | --enable-unikraft=$enable_unikraft
 ------------------------|---------------------------
 
 Configuration           | Option
