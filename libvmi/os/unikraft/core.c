@@ -35,8 +35,6 @@ void unikraft_read_config_ghashtable_entries(char *key, gpointer value,
 
 status_t unikraft_init(vmi_instance_t vmi, GHashTable *config)
 {
-    dbprint(VMI_DEBUG_MISC, "salut adina\n");
-
     status_t status = VMI_FAILURE;
     os_interface_t os_interface = NULL;
 
@@ -47,7 +45,7 @@ status_t unikraft_init(vmi_instance_t vmi, GHashTable *config)
 
     vmi->os_data = g_try_malloc0(sizeof(struct unikraft_instance));
     if (!vmi->os_data) {
-        return VMI_FAILURE;
+        goto _exit;
     }
 
     g_hash_table_foreach(config, (GHFunc) unikraft_read_config_ghashtable_entries,
@@ -58,8 +56,23 @@ status_t unikraft_init(vmi_instance_t vmi, GHashTable *config)
 #endif
 
     dbprint(VMI_DEBUG_MISC, "**set vmi->kpgd (0x%.16"PRIx64").\n", vmi->kpgd);
+    
+
+    os_interface = g_malloc(sizeof(struct os_interface));
+    if ( !os_interface )
+        goto _exit;
+
+    bzero(os_interface, sizeof(struct os_interface));
+    os_interface->os_v2ksym = unikraft_system_map_address_to_symbol;
+    os_interface->os_ksym2v = unikraft_system_map_symbol_to_address;
+
+    vmi->os_interface = os_interface;
+
     return VMI_SUCCESS;
 
+_exit:
+    unikraft_teardown(vmi);
+    return VMI_FAILURE;
 }
 
 void unikraft_read_config_ghashtable_entries(char *key, gpointer value,
@@ -67,5 +80,25 @@ void unikraft_read_config_ghashtable_entries(char *key, gpointer value,
 {
     unikraft_instance_t unikraft_instance = vmi->os_data;
 
+    if (strncmp(key, "sysmap", CONFIG_STR_LENGTH) == 0) {
+        unikraft_instance->kernel = strdup((char *)value);
+    }
+
     return;
+}
+
+status_t unikraft_teardown(vmi_instance_t vmi)
+{
+    unikraft_instance_t unikraft_instance = vmi->os_data;
+
+    if (vmi->os_data == NULL) {
+        return VMI_SUCCESS;
+    }
+
+    free(unikraft_instance->kernel);
+    g_free(unikraft_instance);
+
+    vmi->os_data = NULL;
+
+    return VMI_SUCCESS;
 }

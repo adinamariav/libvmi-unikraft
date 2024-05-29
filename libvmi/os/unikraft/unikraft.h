@@ -23,10 +23,22 @@
  #include "private.h"
 
  struct unikraft_instance {
-    int test;
+    char *kernel;
  };
+
  typedef struct unikraft_instance *unikraft_instance_t;
 
  status_t unikraft_init(vmi_instance_t instance, GHashTable *config);
 
- #endif /* OS_LINUX_H_ */
+ char* unikraft_system_map_address_to_symbol(vmi_instance_t vmi,
+        addr_t address, const access_context_t *ctx);
+
+status_t unikraft_system_map_symbol_to_address(vmi_instance_t vmi,
+    const char *symbol,
+    addr_t *__unused,
+    addr_t* address);
+
+ status_t unikraft_teardown(vmi_instance_t vmi);
+
+ #endif /* OS_UNIKRAFT_H_ */
+ 
