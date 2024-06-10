@@ -63,6 +63,7 @@ status_t unikraft_init(vmi_instance_t vmi, GHashTable *config)
         goto _exit;
 
     bzero(os_interface, sizeof(struct os_interface));
+    os_interface->os_get_offset = unikraft_get_offset;
     os_interface->os_v2ksym = unikraft_system_map_address_to_symbol;
     os_interface->os_ksym2v = unikraft_system_map_symbol_to_address;
 
@@ -80,11 +81,72 @@ void unikraft_read_config_ghashtable_entries(char *key, gpointer value,
 {
     unikraft_instance_t unikraft_instance = vmi->os_data;
 
+    if (key == NULL || value == NULL) {
+        errprint("VMI_ERROR: key or value point to NULL\n");
+        return;
+    }
+
     if (strncmp(key, "sysmap", CONFIG_STR_LENGTH) == 0) {
         unikraft_instance->kernel = strdup((char *)value);
     }
 
+    if (strncmp(key, "uk_thread_list", CONFIG_STR_LENGTH) == 0) {
+        unikraft_instance->thread_list_offset = *(addr_t *)value;
+    }
+
+    if (strncmp(key, "uk_thread_list_last", CONFIG_STR_LENGTH) == 0) {
+        unikraft_instance->queue_last_addr_offset = *(addr_t *)value;
+    }
+
+    if (strncmp(key, "uk_thread_name", CONFIG_STR_LENGTH) == 0) {
+        unikraft_instance->thread_name_offset = *(addr_t *)value;
+    }
+
+    if (strncmp(key, "uk_thread_next", CONFIG_STR_LENGTH) == 0) {
+        unikraft_instance->thread_next_offset = *(addr_t *)value;
+    }
+
+    if (strncmp(key, "uk_pt", CONFIG_STR_LENGTH) == 0) {
+        unikraft_instance->pt_offset = *(addr_t *)value;
+    }
+
     return;
+}
+
+
+status_t unikraft_get_offset(vmi_instance_t vmi, const char* offset_name, addr_t *offset) {
+    const size_t max_length = 100;
+    unikraft_instance_t uk_instance = vmi->os_data;
+
+    if (uk_instance == NULL) {
+        errprint("VMI_ERROR: OS instance not initialized\n");
+        return 0;
+    }
+
+    if (offset_name == NULL || offset == NULL) {
+        errprint("VMI_ERROR: offset_name or offset point to NULL\n");
+        return 0;
+    }
+
+    if (strncmp(offset_name, "uk_thread_list", max_length) == 0) {
+        *offset = uk_instance->thread_list_offset;
+        return VMI_SUCCESS;
+    } else if (strncmp(offset_name, "uk_thread_list_last", max_length) == 0) {
+        *offset = uk_instance->queue_last_addr_offset;
+        return VMI_SUCCESS;
+    } else if (strncmp(offset_name, "uk_thread_name", max_length) == 0) {
+        *offset = uk_instance->thread_name_offset;
+        return VMI_SUCCESS;
+    } else if (strncmp(offset_name, "uk_thread_next", max_length) == 0) {
+        *offset = uk_instance->thread_next_offset;
+        return VMI_SUCCESS;
+    } else if (strncmp(offset_name, "uk_pt", max_length) == 0) {
+        *offset = uk_instance->pt_offset;
+        return VMI_SUCCESS;
+    }
+
+    warnprint("Invalid offset name in unikraft_get_offset (%s).\n", offset_name);
+    return VMI_FAILURE;
 }
 
 status_t unikraft_teardown(vmi_instance_t vmi)

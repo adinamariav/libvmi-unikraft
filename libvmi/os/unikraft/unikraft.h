@@ -23,12 +23,19 @@
  #include "private.h"
 
  struct unikraft_instance {
-    char *kernel;
+    char *kernel;                      /* kernel .dbg file path */
+    addr_t thread_list_offset;         /* uk_sched_head->thread_list */
+    addr_t queue_last_addr_offset;     /* uk_thread_list->tqh_last */
+    addr_t thread_name_offset;         /* uk_thread->name */
+    addr_t thread_next_offset;         /* uk_thread->next */
+    addr_t pt_offset;                  /* uk_vas->pt */
  };
 
  typedef struct unikraft_instance *unikraft_instance_t;
 
  status_t unikraft_init(vmi_instance_t instance, GHashTable *config);
+
+ status_t unikraft_get_offset(vmi_instance_t vmi, const char* offset_name, addr_t *offset);
 
  char* unikraft_system_map_address_to_symbol(vmi_instance_t vmi,
         addr_t address, const access_context_t *ctx);
@@ -41,4 +48,3 @@ status_t unikraft_system_map_symbol_to_address(vmi_instance_t vmi,
  status_t unikraft_teardown(vmi_instance_t vmi);
 
  #endif /* OS_UNIKRAFT_H_ */
- 
