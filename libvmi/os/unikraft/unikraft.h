@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with LibVMI.  If not, see <http://www.gnu.org/licenses/>.
  */
+
  #ifndef OS_UNIKRAFT_H_
  #define OS_UNIKRAFT_H_
 
@@ -40,11 +41,13 @@
  char* unikraft_system_map_address_to_symbol(vmi_instance_t vmi,
         addr_t address, const access_context_t *ctx);
 
-status_t unikraft_system_map_symbol_to_address(vmi_instance_t vmi,
+ status_t unikraft_system_map_symbol_to_address(vmi_instance_t vmi,
     const char *symbol,
     addr_t *__unused,
     addr_t* address);
 
  status_t unikraft_teardown(vmi_instance_t vmi);
+
+ status_t unikraft_virt_to_phys(vmi_instance_t vmi, addr_t va, addr_t *pa);
 
  #endif /* OS_UNIKRAFT_H_ */

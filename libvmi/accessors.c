@@ -2,12 +2,6 @@
  * memory in a target virtual machine or in a file containing a dump of
  * a system's physical memory.  LibVMI is based on the XenAccess Library.
  *
- * Copyright 2011 Sandia Corporation. Under the terms of Contract
- * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
- * retains certain rights in this software.
- *
- * Author: Bryan D. Payne (bdpayne@acm.org)
- *
  * This file is part of LibVMI.
  *
  * LibVMI is free software: you can redistribute it and/or modify it under
@@ -30,6 +24,7 @@
 
 /* NB: Necessary for windows specific API functions */
 #include "os/windows/windows.h"
+#include "os/unikraft/unikraft.h"
 
 uint8_t vmi_get_address_width(
     vmi_instance_t vmi)
@@ -1005,6 +1000,8 @@ vmi_translate_kv2p(
         return VMI_FAILURE;
     }
 #endif
+    if (vmi->os_type == VMI_OS_UNIKRAFT)
+        return unikraft_virt_to_phys(vmi, virt_address, paddr);
 
     return vmi_pagetable_lookup(vmi, vmi->kpgd, virt_address, paddr);
 }
