@@ -136,7 +136,7 @@ typedef enum os {
 
     VMI_OS_OSX,       /**< OS type is OSX */
 
-    VMI_OS_UNIKRAFT
+    VMI_OS_UNIKRAFT   /**< OS type is Unikraft */
 } os_t;
 
 /**

@@ -1,3 +1,23 @@
+/* The LibVMI Library is an introspection library that simplifies access to
+ * memory in a target virtual machine or in a file containing a dump of
+ * a system's physical memory.  LibVMI is based on the XenAccess Library.
+ *
+ * This file is part of LibVMI.
+ *
+ * LibVMI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * LibVMI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with LibVMI.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "private.h"
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -53,18 +73,16 @@ struct elf64_sym {
 #define SHT_DYNAMIC	  6
 
 status_t read_section_header_table(FILE* f, struct elf64_ehdr elf_header, struct elf64_shdr sh_table[]) {
-     int ret = lseek(f, (off_t)elf_header.e_shoff, SEEK_SET);
-
-     if (ret != elf_header.e_shoff) {
+     if (fseek(f, (off_t)elf_header.e_shoff, SEEK_SET) != 0) {
         errprint("Error seeking for sht\n");
         return VMI_FAILURE;
      }
 
     for (uint32_t i = 0; i < elf_header.e_shnum; i++) {
-        int n = read(f, (void *)&sh_table[i], elf_header.e_shentsize);
+        size_t n = fread((void *)&sh_table[i], 1, elf_header.e_shentsize, f);
 
         if (n != elf_header.e_shentsize) {
-            errprint("Error reading sht %d\n", ret);
+            errprint("Error reading sht\n");
             return VMI_FAILURE;
         }
     }
@@ -79,13 +97,12 @@ char* read_section(FILE* f, struct elf64_shdr sh) {
         return NULL;
     }
 
-   int len = lseek(f, (off_t)sh.sh_offset, SEEK_SET);
-   if (len != sh.sh_offset) {
+   if (fseek(f, (off_t)sh.sh_offset, SEEK_SET) != 0) {
         errprint("Error seeking symbol section\n");
         return NULL;
     }
 
-    len = read(f, (void *)section, sh.sh_size);
+    size_t len = fread((void *)section, 1, sh.sh_size, f);
     if (len != sh.sh_size) {
         errprint("Error reading symbol section'\n");
         return NULL;
@@ -164,7 +181,7 @@ done:
     return symbol;
 }               
 
-status_t symbol2addr_lookup(FILE *f, struct elf64_ehdr elf_header, struct elf64_shdr sh_table[], char* symbol, addr_t* address) {
+status_t symbol2addr_lookup(FILE *f, struct elf64_ehdr elf_header, struct elf64_shdr sh_table[], const char* symbol, addr_t* address) {
     char *str_tbl = NULL;
     struct elf64_sym *sym_tbl = NULL;
     uint32_t symbol_count = 0;
@@ -213,7 +230,7 @@ char* unikraft_system_map_address_to_symbol(
     addr_t address,
     const access_context_t *ctx)
 {
-    int f = 0;
+    FILE* f;
     struct elf64_ehdr elf_header;
     struct elf64_shdr* sh_tbl;
 
@@ -231,7 +248,8 @@ char* unikraft_system_map_address_to_symbol(
         goto done;
     }
 
-    if ((f = open(unikraft_instance->kernel, O_RDONLY)) < 0) {
+    f = fopen(unikraft_instance->kernel, "r");
+    if (f == NULL) {
         fprintf(stderr,
                 "ERROR: could not find kernel file after checking:\n");
         fprintf(stderr, "\t%s\n", unikraft_instance->kernel);
@@ -240,9 +258,9 @@ char* unikraft_system_map_address_to_symbol(
         goto done;
     }
 
-    int ret = read(f,  &elf_header, sizeof(struct elf64_ehdr));
+    size_t ret = fread(&elf_header, sizeof(struct elf64_ehdr), 1, f);
 
-    if (ret < 0) {
+    if (ret == 0) {
         errprint("Error reading ELF header\n");
         goto done;
     }
@@ -269,10 +287,9 @@ done:
     if (sh_tbl)
         free(sh_tbl);
     if (f)
-        close(f);
+        fclose(f);
     return symbol;
 
-err:
     errprint("VMI_WARNING: Lookup is implemented for kernel symbols only\n");
     if (symbol)
         free(symbol);
@@ -284,13 +301,13 @@ status_t unikraft_system_map_symbol_to_address(vmi_instance_t vmi,
     addr_t* UNUSED(__unused),
     addr_t* address)
 {
-    int f = 0;
+    FILE* f;
     struct elf64_ehdr elf_header;
     struct elf64_shdr* sh_tbl;
 
     unikraft_instance_t unikraft_instance = vmi->os_data;
 
-#ifdef ENABLE_SAFETY_CHECKSd
+#ifdef ENABLE_SAFETY_CHECKS
     if (!unikraft_instance) {
         errprint("VMI_ERROR: OS instance not initialized\n");
         goto done;
@@ -302,7 +319,9 @@ status_t unikraft_system_map_symbol_to_address(vmi_instance_t vmi,
         goto done;
     }
 
-    if ((f = open(unikraft_instance->kernel, O_RDONLY)) < 0) {
+    f = fopen(unikraft_instance->kernel, "r");
+
+    if (f == NULL) {
         fprintf(stderr,
                 "ERROR: could not find kernel file after checking:\n");
         fprintf(stderr, "\t%s\n", unikraft_instance->kernel);
@@ -311,9 +330,9 @@ status_t unikraft_system_map_symbol_to_address(vmi_instance_t vmi,
         goto done;
     }
 
-    int ret = read(f,  &elf_header, sizeof(struct elf64_ehdr));
+    int ret = fread(&elf_header, sizeof(struct elf64_ehdr), 1, f);
 
-    if (ret < 0) {
+    if (ret == 0) {
         errprint("Error reading ELF header\n");
         goto done;
     }
@@ -340,10 +359,9 @@ done:
     if (sh_tbl)
         free(sh_tbl);
     if (f)
-        close(f);
+        fclose(f);
     return VMI_SUCCESS;
 
-err:
     errprint("VMI_WARNING: Lookup is implemented for kernel symbols only\n");
     return VMI_FAILURE;
 }

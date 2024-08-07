@@ -2,12 +2,6 @@
  * memory in a target virtual machine or in a file containing a dump of
  * a system's physical memory.  LibVMI is based on the XenAccess Library.
  *
- * Copyright 2011 Sandia Corporation. Under the terms of Contract
- * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
- * retains certain rights in this software.
- *
- * Author: Bryan D. Payne (bdpayne@acm.org)
- *
  * This file is part of LibVMI.
  *
  * LibVMI is free software: you can redistribute it and/or modify it under
@@ -52,7 +46,7 @@ status_t unikraft_init(vmi_instance_t vmi, GHashTable *config)
                          vmi);
 
 #if defined(I386) || defined(X86_64)
-    driver_get_vcpureg(vmi, &vmi->kpgd, CR3, 0);
+    status = driver_get_vcpureg(vmi, &vmi->kpgd, CR3, 0);
 #endif
 
     dbprint(VMI_DEBUG_MISC, "**set vmi->kpgd (0x%.16"PRIx64").\n", vmi->kpgd);
