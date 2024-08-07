@@ -58,6 +58,7 @@ option(ENABLE_WINDOWS "Build Windows introspection" ON)
 option(ENABLE_LINUX "Build Linux introspection" ON)
 option(ENABLE_FREEBSD "Build FreeBSD introspection" ON)
 option(ENABLE_OSX "Build OSX introspection" ON)
+option(ENABLE_UNIKRAFT "Build Unikraft introspection" ON)
 
 option(ENABLE_STATIC "Build libvmi static library" ON)
 
@@ -169,6 +170,7 @@ add_feature_info(ENABLE_WINDOWS ENABLE_WINDOWS "Enable Windows introspection")
 add_feature_info(ENABLE_LINUX ENABLE_LINUX "Enable Linux introspection")
 add_feature_info(ENABLE_FREEBSD ENABLE_FREEBSD "Enable FreeBSD introspection")
 add_feature_info(ENABLE_OSX ENABLE_OSX "Enable OSX introspection")
+add_feature_info(ENABLE_UNIKRAFT ENABLE_UNIKRAFT "Enable Unikraft introspection")
 
 add_feature_info(ENABLE_STATIC ENABLE_STATIC "Build LibVMI static library")
 

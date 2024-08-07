@@ -275,6 +275,11 @@ int vmi_parse_config (const char *target_name)
 %token<str>    FREEBSD_VMSPACE
 %token<str>    FREEBSD_PMAP
 %token<str>    FREEBSD_PGD
+%token<str>    UK_THREAD_LIST
+%token<str>    UK_THREAD_LIST_LAST
+%token<str>    UK_THREAD_NAME
+%token<str>    UK_THREAD_NEXT
+%token<str>    UK_PT
 %token<str>    SYSMAPTOK
 %token<str>    REKALL_PROFILE
 %token<str>    VOLATILITY_PROFILE
@@ -380,6 +385,16 @@ assignment:
         freebsd_pmap_assignment
         |
         freebsd_pgd_assignment
+        |
+        uk_thread_list_assignment
+        |
+        uk_thread_list_last_assignment
+        |
+        uk_thread_name_assignment
+        |
+        uk_thread_next_assignment
+        |
+        uk_pt_assignment
         ;
 
 kpgd_assignment:
@@ -629,6 +644,61 @@ freebsd_pmap_assignment:
         ;
 freebsd_pgd_assignment:
         FREEBSD_PGD EQUALS NUM
+        {
+            uint64_t tmp = strtoull($3, NULL, 0);
+            uint64_t *tmp_ptr = malloc(sizeof(uint64_t));
+            (*tmp_ptr) = tmp;
+            g_hash_table_insert(tmp_entry, $1, tmp_ptr);
+            free($3);
+        }
+        ;
+
+uk_thread_list_assignment:
+        UK_THREAD_LIST EQUALS NUM
+        {
+            uint64_t tmp = strtoull($3, NULL, 0);
+            uint64_t *tmp_ptr = malloc(sizeof(uint64_t));
+            (*tmp_ptr) = tmp;
+            g_hash_table_insert(tmp_entry, $1, tmp_ptr);
+            free($3);
+        }
+        ;
+
+uk_thread_list_last_assignment:
+        UK_THREAD_LIST_LAST EQUALS NUM
+        {
+            uint64_t tmp = strtoull($3, NULL, 0);
+            uint64_t *tmp_ptr = malloc(sizeof(uint64_t));
+            (*tmp_ptr) = tmp;
+            g_hash_table_insert(tmp_entry, $1, tmp_ptr);
+            free($3);
+        }
+        ;
+
+uk_thread_name_assignment:
+        UK_THREAD_NAME EQUALS NUM
+        {
+            uint64_t tmp = strtoull($3, NULL, 0);
+            uint64_t *tmp_ptr = malloc(sizeof(uint64_t));
+            (*tmp_ptr) = tmp;
+            g_hash_table_insert(tmp_entry, $1, tmp_ptr);
+            free($3);
+        }
+        ;
+
+uk_thread_next_assignment:
+        UK_THREAD_NEXT EQUALS NUM
+        {
+            uint64_t tmp = strtoull($3, NULL, 0);
+            uint64_t *tmp_ptr = malloc(sizeof(uint64_t));
+            (*tmp_ptr) = tmp;
+            g_hash_table_insert(tmp_entry, $1, tmp_ptr);
+            free($3);
+        }
+        ;
+
+uk_pt_assignment:
+        UK_PT EQUALS NUM
         {
             uint64_t tmp = strtoull($3, NULL, 0);
             uint64_t *tmp_ptr = malloc(sizeof(uint64_t));

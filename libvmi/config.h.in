@@ -46,6 +46,9 @@
 /* Define to Windows support. */
 #cmakedefine ENABLE_WINDOWS
 
+/* Define to Unikraft support. */
+#cmakedefine ENABLE_UNIKRAFT
+
 /* Define to enable Xen support. */
 #cmakedefine ENABLE_XEN
 
