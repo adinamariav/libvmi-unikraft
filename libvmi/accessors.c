@@ -30,6 +30,7 @@
 
 /* NB: Necessary for windows specific API functions */
 #include "os/windows/windows.h"
+#include "os/unikraft/unikraft.h"
 
 uint8_t vmi_get_address_width(
     vmi_instance_t vmi)
@@ -1005,6 +1006,8 @@ vmi_translate_kv2p(
         return VMI_FAILURE;
     }
 #endif
+    if (vmi->os_type == VMI_OS_UNIKRAFT)
+        return unikraft_virt_to_phys(vmi, virt_address, paddr);
 
     return vmi_pagetable_lookup(vmi, vmi->kpgd, virt_address, paddr);
 }

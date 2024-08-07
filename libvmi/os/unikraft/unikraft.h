@@ -17,34 +17,39 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with LibVMI.  If not, see <http://www.gnu.org/licenses/>.
  */
- #ifndef OS_UNIKRAFT_H_
- #define OS_UNIKRAFT_H_
 
- #include "private.h"
+#ifndef OS_UNIKRAFT_H_
+#define OS_UNIKRAFT_H_
 
- struct unikraft_instance {
-    char *kernel;                      /* kernel .dbg file path */
-    addr_t thread_list_offset;         /* uk_sched_head->thread_list */
-    addr_t queue_last_addr_offset;     /* uk_thread_list->tqh_last */
-    addr_t thread_name_offset;         /* uk_thread->name */
-    addr_t thread_next_offset;         /* uk_thread->next */
-    addr_t pt_offset;                  /* uk_vas->pt */
- };
+#include "private.h"
 
- typedef struct unikraft_instance *unikraft_instance_t;
+struct unikraft_instance {
+    char *kernel;       /* kernel .dbg file path */
+    addr_t thread_list_offset;  /* uk_sched_head->thread_list */
+    addr_t queue_last_addr_offset;      /* uk_thread_list->tqh_last */
+    addr_t thread_name_offset;  /* uk_thread->name */
+    addr_t thread_next_offset;  /* uk_thread->next */
+    addr_t pt_offset;   /* uk_vas->pt */
+};
 
- status_t unikraft_init(vmi_instance_t instance, GHashTable *config);
+typedef struct unikraft_instance *unikraft_instance_t;
 
- status_t unikraft_get_offset(vmi_instance_t vmi, const char* offset_name, addr_t *offset);
+status_t unikraft_init(vmi_instance_t instance, GHashTable * config);
 
- char* unikraft_system_map_address_to_symbol(vmi_instance_t vmi,
-        addr_t address, const access_context_t *ctx);
+status_t unikraft_get_offset(vmi_instance_t vmi, const char *offset_name,
+                             addr_t *offset);
+
+char *unikraft_system_map_address_to_symbol(vmi_instance_t vmi,
+                                            addr_t address,
+                                            const access_context_t * ctx);
 
 status_t unikraft_system_map_symbol_to_address(vmi_instance_t vmi,
-    const char *symbol,
-    addr_t *__unused,
-    addr_t* address);
+                                               const char *symbol,
+                                               addr_t *__unused,
+                                               addr_t *address);
 
- status_t unikraft_teardown(vmi_instance_t vmi);
+status_t unikraft_teardown(vmi_instance_t vmi);
 
- #endif /* OS_UNIKRAFT_H_ */
+status_t unikraft_virt_to_phys(vmi_instance_t vmi, addr_t va, addr_t *pa);
+
+#endif /* OS_UNIKRAFT_H_ */
